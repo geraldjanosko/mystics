@@ -1,0 +1,7 @@
+name: 'Mystics Products'
+type: module
+description: 'Provides products to buy with Mystics Stripe integration by Gerald Janosko.'
+core: 8.x
+package: 'Mystics'
+dependencies:
+  - mystics_stripe

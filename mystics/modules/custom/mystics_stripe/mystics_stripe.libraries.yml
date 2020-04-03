@@ -1,0 +1,12 @@
+global-styling:
+  version: 1.x
+  css:
+    theme:
+      css/mystics_stripe.css: {}
+  js:
+    js/mystics_stripe.js: {}
+
+stripe:
+  version: 1.x
+  js:
+    https://js.stripe.com/v3/: {type: external}

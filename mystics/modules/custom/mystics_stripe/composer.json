@@ -1,0 +1,16 @@
+{
+    "name": "mystics/stripe_integration",
+    "type": "drupal-module",
+    "description": "Provides payment forms integrating the Strip payment gateway.",
+    "keywords": [
+    ],
+    "homepage": "https://www.drupal.org/project/mystics_stripe_integration",
+    "minimum-stability": "dev",
+    "support": {
+        "issues": "https://www.drupal.org/project/issues/mystics_stripe_integration",
+        "source": "http://cgit.drupalcode.org/mystics_stripe_integration"
+    },
+    "require": {
+        "stripe/stripe-php": "^7.0@dev"
+    }
+}

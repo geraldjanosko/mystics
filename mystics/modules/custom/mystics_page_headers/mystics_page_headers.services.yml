@@ -1,0 +1,7 @@
+services:
+  logger.channel.mystics_page_headers:
+    parent: logger.channel_base
+    arguments: ['mystics_page_headers']
+  mystics_page_headers.manager:
+    class: Drupal\mystics_page_headers\Services\MPHManager
+    arguments: ['@config.factory', '@database', '@entity_type.manager', '@path.current', '@path.alias_manager', '@title_resolver']

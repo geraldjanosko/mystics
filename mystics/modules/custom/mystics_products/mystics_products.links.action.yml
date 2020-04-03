@@ -1,0 +1,5 @@
+entity.mystics_product.add_form:
+  route_name: entity.mystics_product.add_form
+  title: 'Add Mystics product'
+  appears_on:
+    - entity.mystics_product.collection

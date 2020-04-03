@@ -1,0 +1,38 @@
+<?php
+
+/**
+ * @file
+ * Contains mystics_stripe.module.
+ */
+
+use Drupal\Core\Routing\RouteMatchInterface;
+
+/**
+ * Implements hook_help().
+ */
+function mystics_stripe_help($route_name, RouteMatchInterface $route_match) {
+  switch ($route_name) {
+    // Main module help for the mystics_stripe module.
+    case 'help.page.mystics_stripe':
+      $output = '';
+      $output .= '<h3>' . t('About') . '</h3>';
+      $output .= '<p>' . t('Provides a checkout form with integration to the Stripe payment gateway.') . '</p>';
+      return $output;
+
+    default:
+  }
+}
+
+/**
+ * Implements hook_theme().
+ */
+function mystics_stripe_theme() {
+  return [
+    'stripe_checkout' => [
+      'variables' => [
+        'content' => NULL
+      ],
+      'render element' => 'children',
+    ],
+  ];
+}

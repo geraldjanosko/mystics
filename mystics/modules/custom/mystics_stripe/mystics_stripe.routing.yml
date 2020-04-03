@@ -1,0 +1,32 @@
+mystics_stripe.controller_stripe_checkout:
+  path: 'checkout'
+  defaults:
+    _controller: '\Drupal\mystics_stripe\Controller\MStripeController::stripeCheckout'
+    _title: 'Checkout'
+  requirements:
+    _permission: 'access content'
+
+mystics_stripe.controller_payment_intent:
+  path: 'checkout/payment-intent'
+  defaults:
+    _controller: '\Drupal\mystics_stripe\Controller\MStripeController::paymentIntent'
+    _title: 'Payment Intent'
+  methods: [POST]
+  requirements:
+    _permission: 'access content'
+
+mystics_stripe.controller_post_checkout:
+  path: 'checkout/post-checkout'
+  defaults:
+    _controller: '\Drupal\mystics_stripe\Controller\MStripeController::postCheckout'
+    _title: 'Checkout'
+  requirements:
+    _permission: 'access content'
+
+mystics_stripe.controller_checkout_success:
+  path: 'checkout/success'
+  defaults:
+    _controller: '\Drupal\mystics_stripe\Controller\MStripeController::checkoutSuccess'
+    _title: 'Checkout'
+  requirements:
+    _permission: 'access content'

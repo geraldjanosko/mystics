@@ -1,0 +1,21 @@
+# Mystics product routing definition
+mystics_product.settings_tab:
+  route_name: mystics_product.settings
+  title: 'Settings'
+  base_route: mystics_product.settings
+
+entity.mystics_product.canonical:
+  route_name: entity.mystics_product.canonical
+  base_route: entity.mystics_product.canonical
+  title: 'View'
+
+entity.mystics_product.edit_form:
+  route_name: entity.mystics_product.edit_form
+  base_route: entity.mystics_product.canonical
+  title: 'Edit'
+
+entity.mystics_product.delete_form:
+  route_name:  entity.mystics_product.delete_form
+  base_route:  entity.mystics_product.canonical
+  title: Delete
+  weight: 10

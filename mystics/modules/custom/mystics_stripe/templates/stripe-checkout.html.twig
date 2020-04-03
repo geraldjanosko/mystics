@@ -1,0 +1,21 @@
+{#
+/**
+* @file
+* Default theme implementation to display a block.
+*
+* @see template_preprocess_block()
+*
+* @ingroup themeable
+*/
+#}
+{% set classes = [
+    'clear-both',
+] %}
+<div class="container">
+  <div class="row">
+    <div class="col">
+      {{ content.table }}
+      {{ content.stripe_checkout_form }}
+    </div>
+  </div>
+</div>

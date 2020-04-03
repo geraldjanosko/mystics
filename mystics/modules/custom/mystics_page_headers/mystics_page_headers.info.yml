@@ -1,0 +1,7 @@
+name: 'Mystics Page Headers'
+type: module
+description: 'Provides page headers using media objects by Gerald Janosko.'
+core: 8.x
+package: 'Mystics'
+dependencies:
+  - media

@@ -1,0 +1,51 @@
+{#
+/**
+* @file
+* Default theme implementation to display a block.
+*
+* @see template_preprocess_block()
+*
+* @ingroup themeable
+*/
+#}
+{% set classes = [
+    'clear-both',
+] %}
+{{ attach_library('mystics_services/global-styling') }}
+<section id="services-list" class="container">
+    {% for service in content.services %}
+      <div class="row row-cols-2">
+        {% if loop.index is odd %}
+          <div class="col-md-8 sl-text-wrapper bg-white">
+            <div class="sl-title">
+              <h2>{{ service.title }}</h2>
+            </div>
+            <div class="sl-desc">
+              {{ service.desc }}
+            </div>
+            <div class="sl-link">
+              <a href="{{ service.link }}">Learn more</a>
+            </div>
+          </div>
+          <div class="col-md-4 bg-dark sl-image-wrapper">
+            <img class="img-fluid" src="{{ service.bg_image }}" />
+          </div>
+        {% else %}
+          <div class="col-md-4 bg-dark sl-image-wrapper">
+            <img class="img-fluid" src="{{ service.bg_image }}" />
+          </div> 
+          <div class="col-md-8 sl-text-wrapper bg-white">
+            <div class="sl-title">
+              <h2>{{ service.title }}</h2>
+            </div>
+            <div class="sl-desc">
+              {{ service.desc }}
+            </div>
+            <div class="sl-link">
+              <a href="{{ service.link }}">Learn more</a>
+            </div>
+          </div>
+        {% endif %}
+      </div>
+    {% endfor %}
+</section>

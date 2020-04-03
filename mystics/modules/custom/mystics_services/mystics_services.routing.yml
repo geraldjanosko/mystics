@@ -1,0 +1,7 @@
+mystics_services.m_s_controller_services_list:
+  path: 'services'
+  defaults:
+    _controller: '\Drupal\mystics_services\Controller\MSController::services_list'
+    _title: 'Services'
+  requirements:
+    _permission: 'access content'

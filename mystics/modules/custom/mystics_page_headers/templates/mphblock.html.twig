@@ -1,0 +1,50 @@
+{#
+/**
+* @file
+* Default theme implementation to display a block.
+*
+* @see template_preprocess_block()
+*
+* @ingroup themeable
+*/
+#}
+{% set classes = [
+    'clear-both',
+] %}
+{{ attach_library('mystics_page_headers/global-styling') }}
+<div id="page-header" class="jumbotron bg-dark">
+  <div id="page-header-overlay" class="container">
+    <h1 class="display-3">{{ content.title }}</h1>
+  </div>
+</div>
+{% if content.bg_images is not empty %}
+<style>
+#page-header {
+  background-image: url('{{ content.bg_images.0 }}');
+}
+
+/* Small devices (landscape phones, 576px and up) */
+@media (min-width: 576px) {}
+
+/* Medium devices (tablets, 768px and up) */
+@media (min-width: 768px) {
+  #page-header {
+    background-image: url('{{ content.bg_images.1 }}');
+  }
+}
+
+/* Large devices (desktops, 992px and up) */
+@media (min-width: 992px) {
+  #page-header {
+    background-image: url('{{ content.bg_images.2 }}');
+  }
+}
+
+/* Extra large devices (large desktops, 1200px and up) */
+@media (min-width: 1200px) {
+  #page-header {
+    background-image: url('{{ content.bg_images.3 }}');
+  }
+}
+</style>
+{% endif %}

@@ -1,0 +1,24 @@
+/**
+ * @file
+ * Subtheme specific CSS.
+ */
+/**
+ * Sections
+ */
+.region-featured-bottom-first {
+  background-color: #EBE8DB;
+  padding: 5em 6.25em;
+}
+.region-featured-bottom-first .block {
+  width: 100%;
+}
+
+/**
+ *Service
+ */
+.node--type-service {
+  padding-bottom: 6.25em;
+}
+.node--type-service .service-body {
+  padding: 5em 6.25em;
+}

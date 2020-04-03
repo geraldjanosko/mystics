@@ -1,0 +1,7 @@
+mystics_services.services_list:
+  title: 'Services'
+  description: 'A list of services.'
+  parent: main
+  menu_name: main
+  route_name: mystics_services.m_s_controller_services_list
+  weight: 1

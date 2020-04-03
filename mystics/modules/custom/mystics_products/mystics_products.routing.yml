@@ -1,0 +1,7 @@
+mystics_products.add_to_cart_form:
+  path: 'src/Form/add_to_cart'
+  defaults:
+    _form: '\Drupal\mystics_products\Form\AddToCartForm'
+    _title: 'AddToCartForm'
+  requirements:
+    _access: 'TRUE'

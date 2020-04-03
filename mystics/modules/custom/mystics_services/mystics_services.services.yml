@@ -1,0 +1,7 @@
+services:
+  logger.channel.mystics_services:
+    parent: logger.channel_base
+    arguments: ['mystics_services']
+  mystics_services.manager:
+    class: Drupal\mystics_services\Services\MSManager
+    arguments: ['@config.factory', '@database', '@entity_type.manager']

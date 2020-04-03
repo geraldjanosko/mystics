@@ -1,0 +1,20 @@
+add mystics product entities:
+  title: 'Create new Mystics product entities'
+
+administer mystics product entities:
+  title: 'Administer Mystics product entities'
+  description: 'Allow to access the administration form to configure Mystics product entities.'
+  restrict access: true
+
+delete mystics product entities:
+  title: 'Delete Mystics product entities'
+
+edit mystics product entities:
+  title: 'Edit Mystics product entities'
+
+view published mystics product entities:
+  title: 'View published Mystics product entities'
+
+view unpublished mystics product entities:
+  title: 'View unpublished Mystics product entities'
+

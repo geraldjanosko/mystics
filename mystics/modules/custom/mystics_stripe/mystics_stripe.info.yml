@@ -1,0 +1,5 @@
+name: 'Mystics Stripe'
+type: module
+description: 'Provides a checkout form with integration to the Stripe payment gateway.'
+core: 8.x
+package: 'Mystics'

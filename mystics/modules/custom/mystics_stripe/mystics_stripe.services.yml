@@ -1,0 +1,7 @@
+services:
+  logger.channel.mystics_stripe:
+    parent: logger.channel_base
+    arguments: ['mystics_stripe']
+  mystics_stripe.manager:
+    class: Drupal\mystics_stripe\Services\MStripeManager
+    arguments: ['@config.factory', '@database', '@entity_type.manager', '@current_user']

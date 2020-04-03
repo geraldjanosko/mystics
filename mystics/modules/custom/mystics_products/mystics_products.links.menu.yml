@@ -1,0 +1,14 @@
+
+# Mystics product menu items definition
+entity.mystics_product.collection:
+  title: 'Mystics product list'
+  route_name: entity.mystics_product.collection
+  description: 'List Mystics product entities'
+  parent: system.admin_structure
+  weight: 100
+
+mystics_product.admin.structure.settings:
+  title: 'Mystics product settings'
+  description: 'Configure Mystics product entities'
+  route_name: mystics_product.settings
+  parent: system.admin_structure

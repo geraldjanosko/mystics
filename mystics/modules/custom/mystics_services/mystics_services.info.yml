@@ -1,0 +1,5 @@
+name: 'Mystics Services'
+type: module
+description: 'Provides a services list for Mystics by Gerald Janosko.'
+core: 8.x
+package: 'Mystics'

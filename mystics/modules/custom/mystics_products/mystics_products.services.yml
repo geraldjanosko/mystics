@@ -1,0 +1,7 @@
+services:
+  logger.channel.mystics_products:
+    parent: logger.channel_base
+    arguments: ['mystics_products']
+  mystics_products.manager:
+    class: Drupal\mystics_products\Services\MProductsManager
+    arguments: ['@config.factory', '@database', '@entity_type.manager', '@form_builder', '@path.alias_manager', '@title_resolver']

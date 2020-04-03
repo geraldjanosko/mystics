@@ -1,0 +1,38 @@
+<?php
+
+/**
+ * @file
+ * Contains mystics_products.module.
+ */
+
+use Drupal\Core\Routing\RouteMatchInterface;
+
+/**
+ * Implements hook_help().
+ */
+function mystics_products_help($route_name, RouteMatchInterface $route_match) {
+  switch ($route_name) {
+    // Main module help for the mystics_products module.
+    case 'help.page.mystics_products':
+      $output = '';
+      $output .= '<h3>' . t('About') . '</h3>';
+      $output .= '<p>' . t('Provides products to buy with Mystics Stripe integration by Gerald Janosko.') . '</p>';
+      return $output;
+
+    default:
+  }
+}
+
+/**
+ * Implements hook_theme().
+ */
+function mystics_products_theme() {
+  return [
+    'mpadvertisement_block' => [
+      'variables' => [
+        'content' => NULL
+      ],
+      'render element' => 'children',
+    ],
+  ];
+}
