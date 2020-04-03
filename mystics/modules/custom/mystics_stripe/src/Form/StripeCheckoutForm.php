@@ -21,6 +21,11 @@ class StripeCheckoutForm extends FormBase {
    * {@inheritdoc}
    */
   public function buildForm(array $form, FormStateInterface $form_state) {
+    $form['client_secret'] = [
+      '#type' => 'hidden',
+      '#default_value' => $_SESSION['clientSecret']
+    ];
+
     $form['stripe_elements_wrapper'] = [
        '#type' => 'markup',
        '#markup' => '<div id="card-element"></div><div id="card-errors" role="alert"></div>'

@@ -42,28 +42,15 @@ class MStripeController extends ControllerBase {
    *   Return checkout page.
    */
   public function stripeCheckout() {
+    $page['#attached']['library'] = ['mystics_stripe/stripe', 'mystics_stripe/global-styling'];
+    $page['#theme'] = 'stripe_checkout';
     $manager = $this->mysticsStripeManager;
-    $manager->preCheckout();
-
+    $orderSummary = $manager->preCheckout();
+    $page['#content']['table'] = $orderSummary;
     $stripeCheckoutForm = $this->formBuilder->getForm('Drupal\mystics_stripe\Form\StripeCheckoutForm');
     $page['#content']['stripe_checkout_form'] = $stripeCheckoutForm;
 
     return $page;
-  }
-
-  /**
-   * Ajax callback for payment intent.
-   * @return json
-   *   Return client secret.
-   */
-  public function paymentIntent() {
-    $amount = number_format($_POST['amount'], 2, '.', '') * 100;
-    $manager = $this->mysticsStripeManager;
-    $clientSecret = $manager->getClientSecret($amount);
-
-    return new JsonResponse([
-      'clientSecret' => $clientSecret,
-    ]);
   }
 
   /**

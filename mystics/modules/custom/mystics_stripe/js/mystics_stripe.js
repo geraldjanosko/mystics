@@ -1,29 +1,16 @@
 (function ($, Drupal) {
   Drupal.behaviors.stripeCheckout = {
     attach: function (context, settings) {
-      /*$('body').once('stripeCheckout').each(function() {
+      $('body').once('stripeCheckout').each(function() {
         var stripe;
-        $.ajax({
-          url: drupalSettings.path.baseUrl + 'checkout/payment-intent',
-          method: "POST",
-          data: { amount : 10.00 },
-          dataType: 'json'
+        var clientSecret = $("input[name=client_secret]").val();
+        var stripeData = setupElements(clientSecret);
+        document.getElementById("edit-submit").addEventListener('click', function(event) {
+          event.preventDefault();
+          pay(stripeData.stripe, stripeData.card, stripeData.clientSecret);
         })
-          .then(function(result) {
-            console.log(result);
-            return result.clientSecret;
-          })
-          .then(function(data) {
-            return setupElements(data);
-          })
-          .then(function(stripeData) {
-            document.getElementById("edit-submit").addEventListener('click', function(event) {
-              event.preventDefault();
-              pay(stripeData.stripe, stripeData.card, stripeData.clientSecret);
-            })
-          });
 
-        var setupElements = function(data) {
+        function setupElements(clientSecret) {
           // For dev purposes only change this live.
           stripe = Stripe('pk_test_XFMBP7zsLsapzcaFE3PkiZKE003YrX4HuE');
           var elements = stripe.elements();
@@ -59,11 +46,11 @@
           return {
             stripe: stripe,
             card: card,
-            clientSecret: data
+            clientSecret: clientSecret
           }
         }
 
-        var pay = function(stripe, card, clientSecret) {
+        pay = function(stripe, card, clientSecret) {
           stripe.confirmCardPayment(clientSecret, {
             payment_method: {
               card: card,
@@ -91,7 +78,7 @@
           });
         }
 
-      });*/
+      });
     }
   };
 })(jQuery, Drupal);

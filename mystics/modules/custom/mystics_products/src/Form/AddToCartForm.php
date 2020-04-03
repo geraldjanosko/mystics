@@ -58,8 +58,9 @@ class AddToCartForm extends FormBase {
       if($key == 'product_id') {
         $shoppingCart = &$_SESSION['shoppingCart'];
         if(array_key_exists($value, $shoppingCart)) {
-          $quantity = $shoppingCart[$value]['quantity'] + 1;
-          $shoppingCart[$value] = ['quantity' => $quantity];
+          // $quantity = $shoppingCart[$value]['quantity'] + 1;
+          // $shoppingCart[$value] = ['quantity' => $quantity];
+          $shoppingCart[$value] = ['quantity' => 1];
         } else {
           $shoppingCart[$value] = ['quantity' => 1];
         }
