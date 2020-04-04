@@ -12,10 +12,14 @@
     'clear-both',
 ] %}
 <div class="container">
-  <div class="row">
+  <div class="row mb-5">
     <div class="col">
-      {{ content.table }}
-      {{ content.stripe_checkout_form }}
+      {% if content.order_summary is not empty  %}
+        {{ content.order_summary }}
+        {{ content.stripe_checkout_form }}
+      {% else %}
+        <p>Your cart is empty</p>
+      {% endif %}
     </div>
   </div>
 </div>

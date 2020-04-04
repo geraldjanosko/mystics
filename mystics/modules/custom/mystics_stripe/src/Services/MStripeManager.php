@@ -57,22 +57,19 @@ class MStripeManager {
   }
 
   /**
-   * Perform pre checkout operations.
+   * Get customer_id from Stripe and sync it with Drupal $user.
    */
-  function preCheckout() {
-    // unset($_SESSION['shoppingCart'][1]);
-    $uid = $this->currentUser->id();
-    $user = User::load($uid);
+  private function getCustomerId($user) {
     $userName = $user->get('field_full_name')->getValue();
-    $userName = $userName[0]['value'];
+    $userName = reset($userName)['value'];
     $userMail = $user->get('mail')->getValue();
-    $userMail = $userMail[0]['value'];
+    $userMail = reset($userMail)['value'];
     $userPhone = $user->get('field_phone')->getValue();
-    $userPhone = $userPhone[0]['value'];
-    $customerIdArr = $user->get('field_stripe_customer_id')->getvalue();
-    $customer_id = reset($customerIdArr)['value'];
+    $userPhone = reset($userPhone)['value'];
+    $customerId = $user->get('field_stripe_customer_id')->getvalue();
+    $customerId = reset($customerId)['value'];
     new StripeAuthentication;
-    if(empty($customer_id)) {
+    if(empty($customerId)) {
       $customer = \Stripe\Customer::create(
         [
           'name' => $userName,
@@ -80,47 +77,35 @@ class MStripeManager {
           'phone' => $userPhone
         ]
       );
-      $customer->description;
-      $customer_id = $customer->id;
-      $user->set('field_stripe_customer_id', $customer_id);
+      $customerId = $customer->id;
+      $user->set('field_stripe_customer_id', $customerId);
       $user->save();
     }
-    $header = [
-      'item' => $this->t('Item'),
-      'price' => $this->t('Price'),
-      'quantity' => $this->t('Quantity'),
-      'total' => $this->t('Total')
-    ];
-    $shoppingCart = $_SESSION['shoppingCart'];
-    $rows[] = [];
-    $total = 0;
-    foreach($shoppingCart as $key => $item) {
-      $id = $key;
-      $product = $this->entityTypeManager->getStorage('mystics_product')->load($id);
-      $name = $product->getName();
-      $quantity = $item['quantity'];
-      $price = $product->get('field_product_price')->getValue();
-      $price = $price[0]['value'];
-      $rowTotal = $price * $quantity;
-      $total += $rowTotal;
-      $rowTotal = '$' . number_format($rowTotal, 2, '.', '');
-      $price = '$' . number_format($price, 2, '.', '');
-      $rows[] = [$name, $price, $quantity, $rowTotal];
-    }
-    if(!isset($_SESSION['clientSecret'])) {
+
+    return $customerId;
+  }
+
+  /**
+   * Generate PaymentIntent and sync it with Drupal $user.
+   */
+  private function generatePaymentIntent($user, $total) {
+    $clientSecret = $user->get('field_stripe_client_secret')->getvalue();
+    $clientSecret = reset($clientSecret)['value'];
+    $intentId = $user->get('field_stripe_intent_id')->getvalue();
+    $intentId = reset($intentId)['value'];
+    if(empty($clientSecret) || empty($intentId)) {
       new StripeAuthentication;
       $intent = \Stripe\PaymentIntent::create([
         'amount' => $total * 100,
         'currency' => 'usd',
-        'customer' => $customer_id,
+        'customer' => $customerId
       ]);
       $intentId = $intent->id;
       $clientSecret = $intent->client_secret;
-      $_SESSION['intentId'] = $intentId;
-      $_SESSION['clientSecret'] = $clientSecret;
+      $user->set('field_stripe_client_secret', $clientSecret);
+      $user->set('field_stripe_intent_id', $intentId);
+      $user->save();
     } else {
-      $intentId = $_SESSION['intentId'];
-      $clientSecret = $_SESSION['clientSecret'];
       $intent = \Stripe\PaymentIntent::retrieve($intentId);
       $amount = $intent->amount;
       if(($total * 100) != $amount) {
@@ -131,13 +116,47 @@ class MStripeManager {
       } else {
       }
     }
-    $total = '$' . number_format($total, 2, '.', '');
-    $rows[] = ['', '', '', $total];
-    $orderSummary = array(
-      '#type' => 'table',
-      '#header' => $header,
-      '#rows' => $rows,
-    );
+  }
+
+  /**
+   * Perform pre checkout operations.
+   */
+  function preCheckout() {
+    $uid = $this->currentUser->id();
+    $user = User::load($uid);
+    $customerId = $this->getCustomerId($user);
+    $orderSummary = null;
+    $shoppingCart = isset($_SESSION['shoppingCart']) ? $_SESSION['shoppingCart'] : null;
+    if(!empty($shoppingCart)) {
+      $header = [
+        'item' => $this->t('Item'),
+        'price' => $this->t('Price'),
+        'total' => $this->t('Total')
+      ];
+      $rows[] = [];
+      $total = 0;
+      foreach($shoppingCart as $key => $item) {
+        $id = $key;
+        $product = $this->entityTypeManager->getStorage('mystics_product')->load($id);
+        $name = $product->getName();
+        $quantity = $item['quantity'];
+        $price = $product->get('field_product_price')->getValue();
+        $price = $price[0]['value'];
+        $rowTotal = $price * $quantity;
+        $total += $rowTotal;
+        $rowTotal = '$' . number_format($rowTotal, 2, '.', '');
+        $price = '$' . number_format($price, 2, '.', '');
+        $rows[] = [$name, $price, $rowTotal];
+      }
+      $this->generatePaymentIntent($user, $total);
+      $total = '$' . number_format($total, 2, '.', '');
+      $rows[] = ['', '', $total];
+      $orderSummary = array(
+        '#type' => 'table',
+        '#header' => $header,
+        '#rows' => $rows,
+      );
+    }
 
     return $orderSummary;
   }
@@ -147,8 +166,12 @@ class MStripeManager {
    */
   function postCheckout() {
     unset($_SESSION['shoppingCart']);
-    unset($_SESSION['intentId']);
-    unset($_SESSION['clientSecret']);
+    $uid = $this->currentUser->id();
+    $user = User::load($uid);
+    $user->set('field_stripe_client_secret', '');
+    $user->set('field_stripe_intent_id', '');
+    $user->save();
+    $orderId = bin2hex(random_bytes(16));
   }
 
 }

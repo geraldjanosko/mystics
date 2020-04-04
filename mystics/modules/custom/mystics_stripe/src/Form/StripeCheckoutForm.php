@@ -4,11 +4,39 @@ namespace Drupal\mystics_stripe\Form;
 
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Session\AccountProxyInterface;
+use Symfony\Component\DependencyInjection\ContainerInterface;
+use Drupal\user\Entity\User;
 
 /**
  * Class StripeCheckoutForm.
  */
 class StripeCheckoutForm extends FormBase {
+
+  /**
+   * Drupal\Core\Session\AccountProxyInterface definition.
+   *
+   * @var \Drupal\Core\Session\AccountProxyInterface
+   */
+  protected $currentUser;
+
+  /**
+   * Constructs a new MStripeManager object.
+   */
+  public function __construct(AccountProxyInterface $current_user) {
+    $this->currentUser = $current_user;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function create(ContainerInterface $container) {
+    // Instantiates this form class.
+    return new static(
+      // Load the service required to construct this class.
+      $container->get('current_user')
+    );
+  }
 
   /**
    * {@inheritdoc}
@@ -21,14 +49,20 @@ class StripeCheckoutForm extends FormBase {
    * {@inheritdoc}
    */
   public function buildForm(array $form, FormStateInterface $form_state) {
+    $uid = $this->currentUser->id();
+    $user = User::load($uid);
+    $clientSecret = $user->get('field_stripe_client_secret')->getvalue();
+    $clientSecret = reset($clientSecret)['value'];
     $form['client_secret'] = [
       '#type' => 'hidden',
-      '#default_value' => $_SESSION['clientSecret']
+      '#default_value' => $clientSecret
     ];
 
     $form['stripe_elements_wrapper'] = [
        '#type' => 'markup',
-       '#markup' => '<div id="card-element"></div><div id="card-errors" role="alert"></div>'
+       '#markup' => '<div id="card-element"></div><div id="card-errors" role="alert"></div>',
+       '#prefix' => '<div class="form-group">',
+       '#suffix' => '</div>'
     ];
 
     $form['submit'] = [

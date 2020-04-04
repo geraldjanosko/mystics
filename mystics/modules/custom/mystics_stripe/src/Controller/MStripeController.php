@@ -46,7 +46,7 @@ class MStripeController extends ControllerBase {
     $page['#theme'] = 'stripe_checkout';
     $manager = $this->mysticsStripeManager;
     $orderSummary = $manager->preCheckout();
-    $page['#content']['table'] = $orderSummary;
+    $page['#content']['order_summary'] = $orderSummary;
     $stripeCheckoutForm = $this->formBuilder->getForm('Drupal\mystics_stripe\Form\StripeCheckoutForm');
     $page['#content']['stripe_checkout_form'] = $stripeCheckoutForm;
 

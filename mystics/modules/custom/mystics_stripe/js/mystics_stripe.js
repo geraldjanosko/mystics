@@ -4,13 +4,13 @@
       $('body').once('stripeCheckout').each(function() {
         var stripe;
         var clientSecret = $("input[name=client_secret]").val();
-        var stripeData = setupElements(clientSecret);
+        var stripeData = setupElements();
         document.getElementById("edit-submit").addEventListener('click', function(event) {
           event.preventDefault();
-          pay(stripeData.stripe, stripeData.card, stripeData.clientSecret);
+          pay(stripeData.stripe, stripeData.card, clientSecret);
         })
 
-        function setupElements(clientSecret) {
+        function setupElements() {
           // For dev purposes only change this live.
           stripe = Stripe('pk_test_XFMBP7zsLsapzcaFE3PkiZKE003YrX4HuE');
           var elements = stripe.elements();
@@ -45,8 +45,7 @@
 
           return {
             stripe: stripe,
-            card: card,
-            clientSecret: clientSecret
+            card: card
           }
         }
 
