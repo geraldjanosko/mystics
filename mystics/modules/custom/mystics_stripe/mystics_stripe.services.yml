@@ -4,4 +4,4 @@ services:
     arguments: ['mystics_stripe']
   mystics_stripe.manager:
     class: Drupal\mystics_stripe\Services\MStripeManager
-    arguments: ['@config.factory', '@current_user', '@database', '@entity_type.manager']
+    arguments: ['@config.factory', '@current_user', '@database', '@entity_type.manager', '@module_handler']

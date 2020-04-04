@@ -9,6 +9,7 @@ use Drupal\Core\Database\Driver\mysql\Connection;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Session\AccountProxyInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
+use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\mystics_stripe\StripeAuthentication;
 use Drupal\user\Entity\User;
 
@@ -47,13 +48,21 @@ class MStripeManager {
   protected $entityTypeManager;
 
   /**
+   * Drupal\Core\Extension\ModuleHandlerInterface definition.
+   *
+   * @var \Drupal\Core\Extension\ModuleHandlerInterface
+   */
+  protected $moduleHandler;
+
+  /**
    * Constructs a new MStripeManager object.
    */
-  public function __construct(ConfigFactoryInterface $config_factory, AccountProxyInterface $current_user, Connection $database, EntityTypeManagerInterface $entity_type_manager) {
+  public function __construct(ConfigFactoryInterface $config_factory, AccountProxyInterface $current_user, Connection $database, EntityTypeManagerInterface $entity_type_manager, ModuleHandlerInterface $module_handler) {
     $this->configFactory = $config_factory;
     $this->currentUser = $current_user;
     $this->database = $database;
     $this->entityTypeManager = $entity_type_manager;
+    $this->moduleHandler = $module_handler;
   }
 
   /**
@@ -165,9 +174,19 @@ class MStripeManager {
    * Perform post checkout operations.
    */
   function postCheckout() {
-    unset($_SESSION['shoppingCart']);
     $uid = $this->currentUser->id();
     $user = User::load($uid);
+    $clientSecret = $user->get('field_stripe_client_secret')->getvalue();
+    $clientSecret = reset($clientSecret)['value'];
+    $intentId = $user->get('field_stripe_intent_id')->getvalue();
+    $intentId = reset($intentId)['value'];
+    $variables = [
+      'clientSecret' => $clientSecret,
+      'intentId' => $intentId,
+      'shoppingCart' => $_SESSION['shoppingCart']
+    ];
+    $this->moduleHandler->invokeAll('mystics_stripe_post_checkout', [$variables]);
+    unset($_SESSION['shoppingCart']);
     $user->set('field_stripe_client_secret', '');
     $user->set('field_stripe_intent_id', '');
     $user->save();

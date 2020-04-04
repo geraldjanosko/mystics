@@ -1,0 +1,64 @@
+<?php
+
+/**
+ * @file
+ * Contains mystics_emails.module.
+ */
+
+use Drupal\Core\Routing\RouteMatchInterface;
+
+/**
+ * Implements hook_help().
+ */
+function mystics_emails_help($route_name, RouteMatchInterface $route_match) {
+  switch ($route_name) {
+    // Main module help for the mystics_emails module.
+    case 'help.page.mystics_emails':
+      $output = '';
+      $output .= '<h3>' . t('About') . '</h3>';
+      $output .= '<p>' . t('Provides an email system for Mystics by Gerald Janosko.') . '</p>';
+      return $output;
+
+    default:
+  }
+}
+
+/**
+ * Implements hook_mail().
+ */
+function mystics_emails_mail($key, &$message, $params) {
+  $options = array(
+    'langcode' => $message['langcode'],
+  );
+
+  switch ($key) {
+    case 'order_receipt':
+      $message['from'] = \Drupal::config('system.site')->get('mail');
+      $message['subject'] = t('Receipt For Your Order From Mystics', array(), $options);
+      $message['body'][] = $params['message'];
+
+      break;
+  }
+}
+
+/**
+ * Implements hook_mystics_stripe_post_checkout().
+ */
+function mystics_emails_mystics_stripe_post_checkout($variables) {
+  $shoppingCart = $variables['shoppingCart'];
+  $mailManager = \Drupal::service('plugin.manager.mail');
+  $module = 'mystics_emails';
+  $key = 'order_receipt';
+  $to = \Drupal::currentUser()->getEmail();
+  $params['message'] = 'Thank you for your order.';
+  $langcode = \Drupal::currentUser()->getPreferredLangcode();
+  $send = true;
+
+  $result = $mailManager->mail($module, $key, $to, $langcode, $params, NULL, $send);
+  if ($result['result'] !== true) {
+    drupal_set_message(t('There was a problem sending your message and it was not sent.'), 'error');
+  }
+  else {
+    drupal_set_message(t('Your message has been sent.'));
+  }
+}

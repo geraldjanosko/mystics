@@ -1,0 +1,5 @@
+name: 'Mystics Emails'
+type: module
+description: 'Provides an email system for Mystics by Gerald Janosko.'
+core: 8.x
+package: 'Mystics'
