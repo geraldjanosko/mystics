@@ -171,8 +171,8 @@ class MStripeManager {
       }
     } else {
       $intent = \Stripe\PaymentIntent::retrieve($paymentIntentId);
-      $orderAmount = $intent->amount;
-      if(($orderAmount * 100) != $orderAmount) {
+      $intentAmount = $intent->amount;
+      if(($orderAmount * 100) != $intentAmount) {
         try {
           $intent = \Stripe\PaymentIntent::update(
             $paymentIntentId,
