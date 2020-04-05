@@ -89,6 +89,24 @@ class MStripeManager {
       $customerId = $customer->id;
       $user->set('field_stripe_customer_id', $customerId);
       $user->save();
+    } else {
+      try {
+        $customer = \Stripe\Customer::retrieve($customerId);
+      } catch(\Stripe\Exception\InvalidRequestException $e) {
+        $errorCode = $e->getError()->code;
+        if($errorCode == 'resource_missing') {
+          $customer = \Stripe\Customer::create(
+            [
+              'name' => $userName,
+              'email' => $userMail,
+              'phone' => $userPhone
+            ]
+          );
+          $customerId = $customer->id;
+          $user->set('field_stripe_customer_id', $customerId);
+          $user->save();
+        }
+      }
     }
 
     return $customerId;
@@ -97,17 +115,21 @@ class MStripeManager {
   /**
    * Generate PaymentIntent and sync it with Drupal $user.
    */
-  private function generatePaymentIntent($user, $total) {
+  private function generatePaymentIntent($user, $total, $customerId) {
     $clientSecret = $user->get('field_stripe_client_secret')->getvalue();
     $clientSecret = reset($clientSecret)['value'];
     $intentId = $user->get('field_stripe_intent_id')->getvalue();
     $intentId = reset($intentId)['value'];
+    $uid = $user->id();
+    $orderId = $uid . time() . bin2hex(random_bytes(4));
     if(empty($clientSecret) || empty($intentId)) {
       new StripeAuthentication;
       $intent = \Stripe\PaymentIntent::create([
         'amount' => $total * 100,
         'currency' => 'usd',
-        'customer' => $customerId
+        'customer' => $customerId,
+        'metadata' => ['order_id' => $orderId],
+        'capture_method' => 'manual'
       ]);
       $intentId = $intent->id;
       $clientSecret = $intent->client_secret;
@@ -157,7 +179,7 @@ class MStripeManager {
         $price = '$' . number_format($price, 2, '.', '');
         $rows[] = [$name, $price, $rowTotal];
       }
-      $this->generatePaymentIntent($user, $total);
+      $this->generatePaymentIntent($user, $total, $customerId);
       $total = '$' . number_format($total, 2, '.', '');
       $rows[] = ['', '', $total];
       $orderSummary = array(
@@ -180,17 +202,19 @@ class MStripeManager {
     $clientSecret = reset($clientSecret)['value'];
     $intentId = $user->get('field_stripe_intent_id')->getvalue();
     $intentId = reset($intentId)['value'];
+    new StripeAuthentication;
+    $intent = \Stripe\PaymentIntent::retrieve($intentId);
+    $orderId = $intent->metadata->order_id;
+    $amount = $intent->amount/100;
+    $amount = number_format($amount, 2, '.', '');
     $variables = [
-      'clientSecret' => $clientSecret,
-      'intentId' => $intentId,
-      'shoppingCart' => $_SESSION['shoppingCart']
+      'stripeData' => ['uid' => $uid, 'clientSecret' => $clientSecret, 'intentId' => $intentId, 'orderId' => $orderId, 'amount' => $amount],
+      'shoppingCart' => $_SESSION['shoppingCart'],
     ];
-    $this->moduleHandler->invokeAll('mystics_stripe_post_checkout', [$variables]);
     unset($_SESSION['shoppingCart']);
     $user->set('field_stripe_client_secret', '');
     $user->set('field_stripe_intent_id', '');
     $user->save();
-    $orderId = bin2hex(random_bytes(16));
+    $this->moduleHandler->invokeAll('mystics_stripe_post_checkout', [$variables]);
   }
-
 }

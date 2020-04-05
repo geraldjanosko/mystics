@@ -1,0 +1,33 @@
+<?php
+
+/**
+ * @file
+ * Contains mystics_store.module.
+ */
+
+use Drupal\Core\Routing\RouteMatchInterface;
+
+/**
+ * Implements hook_help().
+ */
+function mystics_store_help($route_name, RouteMatchInterface $route_match) {
+  switch ($route_name) {
+    // Main module help for the mystics_store module.
+    case 'help.page.mystics_store':
+      $output = '';
+      $output .= '<h3>' . t('About') . '</h3>';
+      $output .= '<p>' . t('Provides a store management interface for Mystics Stripe by Gerald Janosko.') . '</p>';
+      return $output;
+
+    default:
+  }
+}
+
+/**
+ * Implements hook_mystics_stripe_post_checkout().
+ */
+function mystics_store_mystics_stripe_post_checkout($variables) {
+  $stripeData =  $variables['stripeData'];
+  $manager = \Drupal::service('mystics_store.manager');
+  $dbOrder = $manager->dbOrder($stripeData);
+}

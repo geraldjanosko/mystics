@@ -1,0 +1,6 @@
+mystics_store.admin_store:
+  title: Mystics Store
+  description: 'Manage store settings and orders.'
+  route_name: mystics_store.admin_store
+  parent: system.admin
+  weight: -4

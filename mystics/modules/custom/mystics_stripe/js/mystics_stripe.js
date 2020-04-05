@@ -60,14 +60,11 @@
             setup_future_usage: 'off_session'
           }).then(function(result) {
             if (result.error) {
-              // Show error to your customer
-              console.log(result.error.message);
             } else {
-              if (result.paymentIntent.status === 'succeeded') {
+              if (result.paymentIntent.status === 'requires_capture' || result.paymentIntent.status === 'succeeded') {
                 $.ajax({
                   url: drupalSettings.path.baseUrl + 'checkout/post-checkout'
                 }).done(function(data) {
-                  console.log(data);
                   if(data.status === 'success') {
                     window.location.replace(drupalSettings.path.baseUrl + 'checkout/success');
                   }

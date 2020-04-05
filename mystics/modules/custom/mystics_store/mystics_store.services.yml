@@ -1,0 +1,7 @@
+services:
+  logger.channel.mystics_store:
+    parent: logger.channel_base
+    arguments: ['mystics_store']
+  mystics_store.manager:
+    class: Drupal\mystics_store\Services\MStoreManager
+    arguments: ['@config.factory', '@database', '@date.formatter', '@entity_type.manager', '@form_builder', '@path.alias_manager']

@@ -1,0 +1,89 @@
+<?php
+
+namespace Drupal\mystics_store\Services;
+use Drupal\Core\Config\ConfigFactoryInterface;
+use Drupal\Core\Database\Driver\mysql\Connection;
+use Drupal\Core\Datetime\DrupalDateTime;
+use Drupal\Core\Datetime\DateFormatter;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Drupal\Core\Form\FormBuilderInterface;
+use Drupal\Core\Path\AliasManagerInterface;
+
+/**
+ * Class MStoreManager.
+ */
+class MStoreManager {
+
+  /**
+   * Drupal\Core\Config\ConfigFactoryInterface definition.
+   *
+   * @var \Drupal\Core\Config\ConfigFactoryInterface
+   */
+  protected $configFactory;
+
+  /**
+   * Drupal\Core\Database\Driver\mysql\Connection definition.
+   *
+   * @var \Drupal\Core\Database\Driver\mysql\Connection
+   */
+  protected $database;
+
+  /**
+   * Drupal\Core\Datetime\DateFormatter definition.
+   *
+   * @var \Drupal\Core\Datetime\DateFormatter
+   */
+  protected $dateFormatter;  
+
+  /**
+   * Drupal\Core\Entity\EntityTypeManagerInterface definition.
+   *
+   * @var \Drupal\Core\Entity\EntityTypeManagerInterface
+   */
+  protected $entityTypeManager;
+
+  /**
+   * Drupal\Core\Form\FormBuilderInterface definition.
+   *
+   * @var \Drupal\Core\Form\FormBuilderInterface
+   */
+  protected $formBuilder;
+
+  /**
+   * Drupal\Core\Path\AliasManagerInterface definition.
+   *
+   * @var \Drupal\Core\Path\AliasManagerInterface
+   */
+  protected $pathAliasManager;
+
+  /**
+   * Constructs a new MStoreManager object.
+   */
+  public function __construct(ConfigFactoryInterface $config_factory, Connection $database, DateFormatter $date_formatter, EntityTypeManagerInterface $entity_type_manager, FormBuilderInterface $form_builder, AliasManagerInterface $path_alias_manager) {
+    $this->configFactory = $config_factory;
+    $this->database = $database;
+    $this->DateFormatter = $date_formatter;
+    $this->entityTypeManager = $entity_type_manager;
+    $this->formBuilder = $form_builder;
+    $this->pathAliasManager = $path_alias_manager;
+  }
+
+  /**
+   * Database Order.
+   */
+  public function dbOrder($stripeData) {
+    $orderId = $stripeData['orderId'];
+    $orderUid = $stripeData['uid'];
+    $orderDateTime = $this->DateFormatter->format(time(), 'custom', \Drupal\datetime\Plugin\Field\FieldType\DateTimeItemInterface::DATETIME_STORAGE_FORMAT);
+    $intentId = $stripeData['intentId'];
+    $orderAmount = $stripeData['amount'];
+    try {
+      $db = $this->database->insert('mystics_orders')
+        ->fields(['mystics_order_id', 'mystics_order_uid', 'mystics_payment_intent_id', 'mystics_order_amount', 'mystics_order_date'])
+        ->values(array($orderId, $orderUid, $intentId, $orderAmount, $orderDateTime))
+        ->execute();
+    } catch(Exception $e) {
+
+    }
+  }
+}

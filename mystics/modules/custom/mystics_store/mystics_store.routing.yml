@@ -1,0 +1,8 @@
+mystics_store.admin_store:
+  path: '/admin/mystics-store'
+  defaults:
+    _controller: '\Drupal\mystics_store\Controller\MysticsStoreController::overview'
+    link_id: 'mystics_store.admin_store'
+    _title: 'Mystics Store'
+  requirements:
+    _role: 'administrator'

@@ -1,0 +1,68 @@
+<?php
+
+/**
+ * Implements hook_schema().
+ */
+function mystics_store_schema() {
+  $schema['mystics_orders'] = [
+    'description' => 'Stores order information for Stripe.',
+    'fields' => [
+      'moid' => [
+        'description' => 'The order number.',
+        'type' => 'serial',
+        'not null' => TRUE
+      ],
+      'mystics_order_id' => [
+        'description' => 'The {mystics_orders}.moid this record affects.',
+        'type' => 'varchar',
+        'length' => 20,
+        'not null' => TRUE,
+        'default' => '',
+      ],
+      'mystics_order_uid' => [
+        'description' => 'The uid of the user who placed the order.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ],
+      'mystics_payment_intent_id' => [
+        'description' => 'The paymentIntentId to capture the charge later.',
+        'type' => 'varchar',
+        'length' => 30,
+        'not null' => TRUE,
+        'default' => '',
+      ],
+      'mystics_order_amount' => [
+        'description' => 'The amount of the order.',
+        'type' => 'numeric',
+        'not null' => TRUE,
+        'default' => 0.00,
+        'precision' => 13,
+        'scale' => 2,
+      ],
+      'mystics_order_date' => [
+        'description' => 'The date and time the order was placed.',
+        'type' => 'datetime',
+        'mysql_type' => 'datetime',
+        'not null' => TRUE
+      ],
+      'mystics_order_status' => [
+        'description' => 'The status of the order.',
+        'type' => 'varchar',
+        'length' =>  20,
+        'not null' => TRUE,
+        'default' => 'requires_capture'
+      ],
+    ],
+    'primary key' => [
+      'moid',
+      'mystics_order_id'
+    ],
+    'unique keys' => [
+      'mystics_order_id' => array('mystics_order_id')
+    ]
+  ];
+
+  return $schema;
+}

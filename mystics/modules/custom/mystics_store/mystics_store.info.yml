@@ -1,0 +1,8 @@
+name: 'Mystics Store'
+type: module
+description: 'Provides a store management interface for Mystics Stripe by Gerald Janosko.'
+core: 8.x
+package: 'Mystics'
+dependencies:
+  - mystics_products
+  - mystics_stripe
