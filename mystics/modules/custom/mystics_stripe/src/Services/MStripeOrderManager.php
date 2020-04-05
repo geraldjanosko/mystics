@@ -7,6 +7,7 @@ use Drupal\Core\Database\Driver\mysql\Connection;
 use Drupal\Core\Datetime\DrupalDateTime;
 use Drupal\Core\Datetime\DateFormatter;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Drupal\Core\Logger\LoggerChannelFactory;
 
 /**
  * Class MStripeOrderManager.
@@ -42,13 +43,21 @@ class MStripeOrderManager {
   protected $entityTypeManager;
 
   /**
+   * Drupal\Core\Logger\LoggerChannelFactory definition.
+   *
+   * @var \Drupal\Core\Logger\LoggerChannelFactory
+   */
+  protected $loggerFactory;
+
+  /**
    * Constructs a new MStripeOrderManager object.
    */
-  public function __construct(ConfigFactoryInterface $config_factory, Connection $database, DateFormatter $date_formatter, EntityTypeManagerInterface $entity_type_manager) {
+  public function __construct(ConfigFactoryInterface $config_factory, Connection $database, DateFormatter $date_formatter, EntityTypeManagerInterface $entity_type_manager, LoggerChannelFactory $logger_factory) {
     $this->configFactory = $config_factory;
     $this->database = $database;
     $this->DateFormatter = $date_formatter;
     $this->entityTypeManager = $entity_type_manager;
+    $this->loggerFactory = $logger_factory->get('mystics_stripe');
   }
 
   /**
@@ -95,7 +104,7 @@ class MStripeOrderManager {
         ])
         ->execute();
     } catch(Exception $e) {
-
+      $this->logger->error($e);
     }
   }
 
@@ -103,12 +112,16 @@ class MStripeOrderManager {
    * Update order status.
    */
   public function updateOrderStatus($clientSecret, $orderStatus) {
-    $query = $this->database->update('mystics_orders')
-      ->fields([
-        'mystics_order_status' => $orderStatus
-      ])
-      ->condition('mystics_client_secret', $clientSecret, '=')
-      ->execute();
+    try {
+      $query = $this->database->update('mystics_orders')
+        ->fields([
+          'mystics_order_status' => $orderStatus
+        ])
+        ->condition('mystics_client_secret', $clientSecret, '=')
+        ->execute();
+    } catch(Exception $e) {
+      $this->logger->error($e);
+    }
   }
 
 }
