@@ -6,3 +6,11 @@ mystics_store.admin_store:
     _title: 'Mystics Store'
   requirements:
     _role: 'administrator'
+
+mystics_store.orders_table_select:
+  path: '/admin/mystics-store/orders-list'
+  defaults:
+    _form: '\Drupal\mystics_store\Form\OrdersTableSelect'
+    _title: 'Orders List'
+  requirements:
+    _role: 'administrator'

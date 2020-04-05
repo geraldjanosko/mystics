@@ -4,3 +4,9 @@ mystics_store.admin_store:
   route_name: mystics_store.admin_store
   parent: system.admin
   weight: -4
+
+mystics_store.admin_orders_list:
+  title: Orders List
+  description: 'Manage orders.'
+  route_name: mystics_store.orders_table_select
+  menu_name: mystics-store

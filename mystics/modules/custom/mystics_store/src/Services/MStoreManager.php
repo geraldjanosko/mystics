@@ -67,4 +67,16 @@ class MStoreManager {
     $this->formBuilder = $form_builder;
     $this->pathAliasManager = $path_alias_manager;
   }
+
+  /**
+   * Get orders list.
+   */
+  public function getOrders() {
+    $query = $this->database->select('mystics_orders', 'mo');
+    $query->fields('mo');
+    $query = $query->extend('Drupal\Core\Database\Query\PagerSelectExtender')->limit(20);
+    $results = $query->execute();
+
+    return $results;
+  }
 }
