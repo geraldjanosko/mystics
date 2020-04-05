@@ -3,17 +3,17 @@
 /**
  * Implements hook_schema().
  */
-function mystics_store_schema() {
+function mystics_stripe_schema() {
   $schema['mystics_orders'] = [
-    'description' => 'Stores order information for Stripe.',
+    'description' => 'Order information for Stripe.',
     'fields' => [
       'moid' => [
-        'description' => 'The order number.',
+        'description' => 'he {mystics_orders}.moid this record affects.',
         'type' => 'serial',
         'not null' => TRUE
       ],
       'mystics_order_id' => [
-        'description' => 'The {mystics_orders}.moid this record affects.',
+        'description' => 'The unique order id for this order that is passed to Stripe.',
         'type' => 'varchar',
         'length' => 20,
         'not null' => TRUE,
@@ -26,8 +26,15 @@ function mystics_store_schema() {
         'not null' => TRUE,
         'default' => 0,
       ],
+      'mystics_client_secret' => [
+        'description' => 'The client_secret associated with the order.',
+        'type' => 'varchar',
+        'length' => 100,
+        'not null' => TRUE,
+        'default' => '',
+      ],
       'mystics_payment_intent_id' => [
-        'description' => 'The paymentIntentId to capture the charge later.',
+        'description' => 'The payment_intent_id associated with the order.',
         'type' => 'varchar',
         'length' => 30,
         'not null' => TRUE,
@@ -50,9 +57,9 @@ function mystics_store_schema() {
       'mystics_order_status' => [
         'description' => 'The status of the order.',
         'type' => 'varchar',
-        'length' =>  20,
+        'length' =>  30,
         'not null' => TRUE,
-        'default' => 'requires_capture'
+        'default' => 'requires_payment_method'
       ],
     ],
     'primary key' => [

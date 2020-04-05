@@ -7,9 +7,11 @@ require_once dirname(__DIR__, 2) . '/vendor/autoload.php';
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Database\Driver\mysql\Connection;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Drupal\Core\Extension\ModuleHandlerInterface;
+use Drupal\Core\Logger\LoggerChannelFactory;
 use Drupal\Core\Session\AccountProxyInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
-use Drupal\Core\Extension\ModuleHandlerInterface;
+use Drupal\mystics_stripe\Services\MStripeOrderManager;
 use Drupal\mystics_stripe\StripeAuthentication;
 use Drupal\user\Entity\User;
 
@@ -55,14 +57,30 @@ class MStripeManager {
   protected $moduleHandler;
 
   /**
+   * Drupal\Core\Logger\LoggerChannelFactory definition.
+   *
+   * @var \Drupal\Core\Logger\LoggerChannelFactory
+   */
+  protected $loggerFactory;
+
+  /**
+   * Drupal\mystics_stripe\Services\MStripeOrderManager definition.
+   *
+   * @var \Drupal\mystics_stripe\Services\MStripeOrderManager
+   */
+  protected $mStripeOrderManager;
+
+  /**
    * Constructs a new MStripeManager object.
    */
-  public function __construct(ConfigFactoryInterface $config_factory, AccountProxyInterface $current_user, Connection $database, EntityTypeManagerInterface $entity_type_manager, ModuleHandlerInterface $module_handler) {
+  public function __construct(ConfigFactoryInterface $config_factory, AccountProxyInterface $current_user, Connection $database, EntityTypeManagerInterface $entity_type_manager, ModuleHandlerInterface $module_handler, LoggerChannelFactory $logger_factory, MStripeOrderManager $m_stripe_order_manager) {
     $this->configFactory = $config_factory;
     $this->currentUser = $current_user;
     $this->database = $database;
     $this->entityTypeManager = $entity_type_manager;
     $this->moduleHandler = $module_handler;
+    $this->loggerFactory = $logger_factory->get('mystics_stripe');
+    $this->mStripeOrderManager = $m_stripe_order_manager;
   }
 
   /**
@@ -79,16 +97,20 @@ class MStripeManager {
     $customerId = reset($customerId)['value'];
     new StripeAuthentication;
     if(empty($customerId)) {
-      $customer = \Stripe\Customer::create(
-        [
-          'name' => $userName,
-          'email' => $userMail,
-          'phone' => $userPhone
-        ]
-      );
-      $customerId = $customer->id;
-      $user->set('field_stripe_customer_id', $customerId);
-      $user->save();
+      try {
+        $customer = \Stripe\Customer::create(
+          [
+            'name' => $userName,
+            'email' => $userMail,
+            'phone' => $userPhone
+          ]
+        );
+        $customerId = $customer->id;
+        $user->set('field_stripe_customer_id', $customerId);
+        $user->save();
+      } catch(Exception $e) {
+        $this->logger->error($e);
+      }
     } else {
       try {
         $customer = \Stripe\Customer::retrieve($customerId);
@@ -115,36 +137,53 @@ class MStripeManager {
   /**
    * Generate PaymentIntent and sync it with Drupal $user.
    */
-  private function generatePaymentIntent($user, $total, $customerId) {
-    $clientSecret = $user->get('field_stripe_client_secret')->getvalue();
-    $clientSecret = reset($clientSecret)['value'];
-    $intentId = $user->get('field_stripe_intent_id')->getvalue();
-    $intentId = reset($intentId)['value'];
-    $uid = $user->id();
-    $orderId = $uid . time() . bin2hex(random_bytes(4));
-    if(empty($clientSecret) || empty($intentId)) {
+  private function generatePaymentIntent($uid, $orderAmount, $customerId) {
+    $manager = $this->mStripeOrderManager;
+    $orderData = $manager->getOrderInProgressByUser($uid);
+    $clientSecret = '';
+    $paymentIntentId = '';
+    $orderId = '';
+    foreach($orderData as $data) {
+      if(!empty($data)) {
+        $clientSecret = $data->mystics_client_secret;
+        $paymentIntentId = $data->mystics_payment_intent_id;
+        $orderId = $data->mystics_order_id;
+      }
+    }
+    if(empty($clientSecret) || empty($paymentIntentId)) {
+      $orderId = $uid . time() . bin2hex(random_bytes(4));
       new StripeAuthentication;
-      $intent = \Stripe\PaymentIntent::create([
-        'amount' => $total * 100,
-        'currency' => 'usd',
-        'customer' => $customerId,
-        'metadata' => ['order_id' => $orderId],
-        'capture_method' => 'manual'
-      ]);
-      $intentId = $intent->id;
-      $clientSecret = $intent->client_secret;
-      $user->set('field_stripe_client_secret', $clientSecret);
-      $user->set('field_stripe_intent_id', $intentId);
-      $user->save();
+      try {
+        $intent = \Stripe\PaymentIntent::create([
+          'amount' => $orderAmount * 100,
+          'currency' => 'usd',
+          'customer' => $customerId,
+          'metadata' => ['order_id' => $orderId],
+          'capture_method' => 'manual'
+        ]);
+        $paymentIntentId = $intent->id;
+        $clientSecret = $intent->client_secret;
+        $orderStatus = $intent->status;
+        $orderData = ['uid' => $uid, 'clientSecret' => $clientSecret, 'paymentIntentId' => $paymentIntentId, 'orderId' => $orderId, 'orderAmount' => $orderAmount, 'orderStatus' => $orderStatus];
+        $manager->dbOrder($orderData);
+      } catch(Exception $e) {
+        $this->logger->error($e);
+      }
     } else {
-      $intent = \Stripe\PaymentIntent::retrieve($intentId);
-      $amount = $intent->amount;
-      if(($total * 100) != $amount) {
-        \Stripe\PaymentIntent::update(
-          $intentId,
-          ['amount' => $total * 100]
-        );
-      } else {
+      $intent = \Stripe\PaymentIntent::retrieve($paymentIntentId);
+      $orderAmount = $intent->amount;
+      if(($orderAmount * 100) != $orderAmount) {
+        try {
+          $intent = \Stripe\PaymentIntent::update(
+            $paymentIntentId,
+            ['amount' => $orderAmount * 100]
+          );
+          $orderStatus = $intent->status;
+          $orderData = ['orderId' => $orderId, 'orderAmount' => $orderAmount, 'orderStatus' => $orderStatus];
+          $manager->dbOrder($orderData);
+        } catch(Exception $e) {
+          $this->logger->error($e);
+        }
       }
     }
   }
@@ -164,8 +203,8 @@ class MStripeManager {
         'price' => $this->t('Price'),
         'total' => $this->t('Total')
       ];
+      $orderAmount = 0;
       $rows[] = [];
-      $total = 0;
       foreach($shoppingCart as $key => $item) {
         $id = $key;
         $product = $this->entityTypeManager->getStorage('mystics_product')->load($id);
@@ -174,14 +213,14 @@ class MStripeManager {
         $price = $product->get('field_product_price')->getValue();
         $price = $price[0]['value'];
         $rowTotal = $price * $quantity;
-        $total += $rowTotal;
+        $orderAmount += $rowTotal;
         $rowTotal = '$' . number_format($rowTotal, 2, '.', '');
         $price = '$' . number_format($price, 2, '.', '');
         $rows[] = [$name, $price, $rowTotal];
       }
-      $this->generatePaymentIntent($user, $total, $customerId);
-      $total = '$' . number_format($total, 2, '.', '');
-      $rows[] = ['', '', $total];
+      $this->generatePaymentIntent($uid, $orderAmount, $customerId);
+      $orderAmount = '$' . number_format($orderAmount, 2, '.', '');
+      $rows[] = ['', '', $orderAmount];
       $orderSummary = array(
         '#type' => 'table',
         '#header' => $header,
@@ -196,25 +235,13 @@ class MStripeManager {
    * Perform post checkout operations.
    */
   function postCheckout() {
-    $uid = $this->currentUser->id();
-    $user = User::load($uid);
-    $clientSecret = $user->get('field_stripe_client_secret')->getvalue();
-    $clientSecret = reset($clientSecret)['value'];
-    $intentId = $user->get('field_stripe_intent_id')->getvalue();
-    $intentId = reset($intentId)['value'];
-    new StripeAuthentication;
-    $intent = \Stripe\PaymentIntent::retrieve($intentId);
-    $orderId = $intent->metadata->order_id;
-    $amount = $intent->amount/100;
-    $amount = number_format($amount, 2, '.', '');
-    $variables = [
-      'stripeData' => ['uid' => $uid, 'clientSecret' => $clientSecret, 'intentId' => $intentId, 'orderId' => $orderId, 'amount' => $amount],
-      'shoppingCart' => $_SESSION['shoppingCart'],
-    ];
     unset($_SESSION['shoppingCart']);
-    $user->set('field_stripe_client_secret', '');
-    $user->set('field_stripe_intent_id', '');
-    $user->save();
+    $clientSecret = $_POST['clientSecret'];
+    $orderStatus = $_POST['orderStatus'];
+    $manager = $this->mStripeOrderManager;
+    $manager->updateOrderStatus($clientSecret, $orderStatus);
+    $variables = [];
     $this->moduleHandler->invokeAll('mystics_stripe_post_checkout', [$variables]);
   }
+
 }

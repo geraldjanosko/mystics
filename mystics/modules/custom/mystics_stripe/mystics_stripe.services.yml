@@ -4,4 +4,7 @@ services:
     arguments: ['mystics_stripe']
   mystics_stripe.manager:
     class: Drupal\mystics_stripe\Services\MStripeManager
-    arguments: ['@config.factory', '@current_user', '@database', '@entity_type.manager', '@module_handler']
+    arguments: ['@config.factory', '@current_user', '@database', '@entity_type.manager', '@module_handler', '@logger.factory', '@mystics_stripe.order_manager']
+  mystics_stripe.order_manager:
+    class: Drupal\mystics_stripe\Services\MStripeOrderManager
+    arguments: ['@config.factory', '@database', '@date.formatter', '@entity_type.manager']

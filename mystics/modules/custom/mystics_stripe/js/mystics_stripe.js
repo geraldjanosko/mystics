@@ -3,6 +3,7 @@
     attach: function (context, settings) {
       $('body').once('stripeCheckout').each(function() {
         var stripe;
+        var userName = $("input[name=user_name]").val();
         var clientSecret = $("input[name=client_secret]").val();
         var stripeData = setupElements();
         document.getElementById("edit-submit").addEventListener('click', function(event) {
@@ -54,7 +55,7 @@
             payment_method: {
               card: card,
               billing_details: {
-                name: 'Gerald Janosko'
+                name: userName
               }
             },
             setup_future_usage: 'off_session'
@@ -63,7 +64,9 @@
             } else {
               if (result.paymentIntent.status === 'requires_capture' || result.paymentIntent.status === 'succeeded') {
                 $.ajax({
-                  url: drupalSettings.path.baseUrl + 'checkout/post-checkout'
+                  method: "POST",
+                  url: drupalSettings.path.baseUrl + 'checkout/post-checkout',
+                  data: { clientSecret: clientSecret, orderStatus: result.paymentIntent.status}
                 }).done(function(data) {
                   if(data.status === 'success') {
                     window.location.replace(drupalSettings.path.baseUrl + 'checkout/success');

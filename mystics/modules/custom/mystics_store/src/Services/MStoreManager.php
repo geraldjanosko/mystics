@@ -67,23 +67,4 @@ class MStoreManager {
     $this->formBuilder = $form_builder;
     $this->pathAliasManager = $path_alias_manager;
   }
-
-  /**
-   * Database Order.
-   */
-  public function dbOrder($stripeData) {
-    $orderId = $stripeData['orderId'];
-    $orderUid = $stripeData['uid'];
-    $orderDateTime = $this->DateFormatter->format(time(), 'custom', \Drupal\datetime\Plugin\Field\FieldType\DateTimeItemInterface::DATETIME_STORAGE_FORMAT);
-    $intentId = $stripeData['intentId'];
-    $orderAmount = $stripeData['amount'];
-    try {
-      $db = $this->database->insert('mystics_orders')
-        ->fields(['mystics_order_id', 'mystics_order_uid', 'mystics_payment_intent_id', 'mystics_order_amount', 'mystics_order_date'])
-        ->values(array($orderId, $orderUid, $intentId, $orderAmount, $orderDateTime))
-        ->execute();
-    } catch(Exception $e) {
-
-    }
-  }
 }

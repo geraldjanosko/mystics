@@ -22,12 +22,3 @@ function mystics_store_help($route_name, RouteMatchInterface $route_match) {
     default:
   }
 }
-
-/**
- * Implements hook_mystics_stripe_post_checkout().
- */
-function mystics_store_mystics_stripe_post_checkout($variables) {
-  $stripeData =  $variables['stripeData'];
-  $manager = \Drupal::service('mystics_store.manager');
-  $dbOrder = $manager->dbOrder($stripeData);
-}
