@@ -59,9 +59,30 @@ class OrdersTableSelect extends FormBase {
    */
   public function buildForm(array $form, FormStateInterface $form_state) {
     $options = [
-      'capture_funds' => $this->t('Capture Funds')
+      null => $this->t('All'),
+      'requires_capture' => $this->t('requires_capture'),
+      'succeeded' => $this->t('succeeded'),
+      'requires_payment_method' => $this->t('requires_payment_method')
+    ];
+    $orderStatus = isset($_GET['orderStatus']) ? $_GET['orderStatus'] : null;
+    $form['filter_order_status'] = [
+      '#type' => 'select',
+      '#title' => $this->t('Order Status'),
+      '#options' => $options,
+      '#default_value' => $orderStatus
     ];
 
+    $form['submit_filters'] = [
+      '#type' => 'submit',
+      '#prefix' => '<div class="form-actions js-form-wrapper form-wrapper">',
+      '#submit' => ['::filterOrdersListSubmitForm'],
+      '#suffix' => '</div>',
+      '#value' => $this->t('Filter'),
+    ];
+
+    $options = [
+      'capture_funds' => $this->t('Capture Funds')
+    ];
     $form['action'] = [
       '#type' => 'select',
       '#title' => $this->t('Action'),
@@ -79,7 +100,7 @@ class OrdersTableSelect extends FormBase {
     $header = [
       'moid' => ['data' => $this->t('ID'), 'field' => 'moid'],
       'mystics_order_id' => ['data' => $this->t('Order Id'), 'field' => 'mystics_order_id'],
-      'user_full_name' => ['data' => $this->t('Full Name'), 'field' => 'field_full_name_value'],
+      'mystics_order_full_name' => ['data' => $this->t('Order Full Name'), 'field' => 'field_full_name_value'],
       'mystics_client_secret' => ['data' => $this->t('Client Secret'), 'field' => 'mystics_client_secret'],
       'mystics_payment_intent_id' => ['data' => $this->t('Payment Intent Id'), 'field' => 'mystics_payment_intent_id'],
       'mystics_order_amount' => ['data' => $this->t('Order Amount'), 'field' => 'mystics_order_amount'],
@@ -88,12 +109,12 @@ class OrdersTableSelect extends FormBase {
     ];
 
     $manager = $this->mStripeOrderManager;
-    $orders = $manager->getOrders($header);
+    $orders = $manager->getOrders($orderStatus, $header);
     $options = [];
     foreach($orders as $order) {
       $moid = $order->moid;
       $mysticsOrderId = $order->mystics_order_id;
-      $userFullName = $order->field_full_name_value;
+      $mysticsOrderFullName = $order->field_full_name_value;
       $mysticsClientSecret = $order->mystics_client_secret;
       $mysticsPaymentIntentId = $order->mystics_payment_intent_id;
       $mysticsOrderAmount = $order->mystics_order_amount;
@@ -102,7 +123,7 @@ class OrdersTableSelect extends FormBase {
       $options[$mysticsPaymentIntentId] = [
         'moid' => $moid,
         'mystics_order_id' => $mysticsOrderId,
-        'user_full_name' => $userFullName,
+        'mystics_order_full_name' => $mysticsOrderFullName,
         'mystics_client_secret' => $mysticsClientSecret,
         'mystics_payment_intent_id' => $mysticsPaymentIntentId,
         'mystics_order_amount' => $mysticsOrderAmount,
@@ -138,6 +159,37 @@ class OrdersTableSelect extends FormBase {
       // @TODO: Validate fields.
     }
     parent::validateForm($form, $form_state);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function filterOrdersListSubmitForm(array &$form, FormStateInterface $form_state) {
+    $args = [];
+    $values = $form_state->getValues();
+    foreach($values as $key => $value) {
+      if(substr($key, 0, 6) == 'filter') {
+        $argKey = substr($key, 7);
+        $argKeys = explode('_', $argKey);
+        $first = true;
+        foreach($argKeys as &$argKey) {
+          if($first == false) {
+            $argKey = ucfirst($argKey);
+          }
+          $first = false;
+        }
+        $argKey = implode('', $argKeys);
+        $args = [$argKey => $value];
+      }
+    }
+    if(!empty($_GET)) {
+      foreach($_GET as $key => $arg) {
+        if(!array_key_exists($key, $args)) {
+          $args[$key] = $arg;
+        }
+      }
+    }
+    $form_state->setRedirect('mystics_store.orders_table_select', [], ['query' => $args]);
   }
 
   /**
