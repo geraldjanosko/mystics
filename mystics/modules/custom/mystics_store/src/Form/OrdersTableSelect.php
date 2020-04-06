@@ -62,9 +62,9 @@ class OrdersTableSelect extends FormBase {
       'capture_funds' => $this->t('Capture Funds')
     ];
 
-    $form['operation'] = [
+    $form['action'] = [
       '#type' => 'select',
-      '#title' => $this->t('Operation'),
+      '#title' => $this->t('action'),
       '#options' => $options,
       '#default_value' => key(reset($options))
     ];
@@ -113,7 +113,7 @@ class OrdersTableSelect extends FormBase {
 
     $form['submit'] = [
       '#type' => 'submit',
-      '#value' => $this->t('Submit'),
+      '#value' => $this->t('Apply to selected items'),
     ];
 
     $form['pager']['#type'] = 'pager';
@@ -135,8 +135,8 @@ class OrdersTableSelect extends FormBase {
    * {@inheritdoc}
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
-    $operation = $form_state->getValue('operation');
-    switch($operation) {
+    $action = $form_state->getValue('action');
+    switch($action) {
       case 'capture_funds':
         $selected = array_filter($form_state->getValue('table'));
         foreach ($selected as $paymentIntentId) {
