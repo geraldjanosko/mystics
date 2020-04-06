@@ -61,6 +61,21 @@ class MStripeOrderManager {
   }
 
   /**
+   * Get orders list.
+   */
+  public function getOrders($header) {
+    $query = $this->database->select('mystics_orders', 'mo')->extend('Drupal\Core\Database\Query\PagerSelectExtender')->extend('Drupal\Core\Database\Query\TableSortExtender');
+    $query->leftjoin('user__field_full_name', 'fn', 'fn.entity_id = mo.mystics_order_uid');
+    $query->fields('mo');
+    $query->fields('fn', array('field_full_name_value'))
+      ->limit(20)
+      ->orderByHeader($header); 
+    $results = $query->execute();
+
+    return $results;
+  }
+
+  /**
    * Get order in progress data for the user.
    */
   public function getOrderInProgressByUser($uid) {
@@ -104,23 +119,23 @@ class MStripeOrderManager {
         ])
         ->execute();
     } catch(Exception $e) {
-      $this->logger->error($e);
+      $this->loggerFactory->error($e);
     }
   }
 
   /**
    * Update order status.
    */
-  public function updateOrderStatus($clientSecret, $orderStatus) {
+  public function updateOrderStatus($key, $value, $orderStatus) {
     try {
       $query = $this->database->update('mystics_orders')
         ->fields([
           'mystics_order_status' => $orderStatus
         ])
-        ->condition('mystics_client_secret', $clientSecret, '=')
+        ->condition('mystics_'.$key, $value, '=')
         ->execute();
     } catch(Exception $e) {
-      $this->logger->error($e);
+      $this->loggerFactory->error($e);
     }
   }
 

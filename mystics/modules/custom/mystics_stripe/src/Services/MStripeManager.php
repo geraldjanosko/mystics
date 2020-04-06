@@ -109,7 +109,7 @@ class MStripeManager {
         $user->set('field_stripe_customer_id', $customerId);
         $user->save();
       } catch(Exception $e) {
-        $this->logger->error($e);
+        $this->loggerFactory->error($e);
       }
     } else {
       try {
@@ -128,6 +128,8 @@ class MStripeManager {
           $user->set('field_stripe_customer_id', $customerId);
           $user->save();
         }
+      } catch(Exception $e) {
+        $this->loggerFactory->error($e);
       }
     }
 
@@ -167,7 +169,7 @@ class MStripeManager {
         $orderData = ['uid' => $uid, 'clientSecret' => $clientSecret, 'paymentIntentId' => $paymentIntentId, 'orderId' => $orderId, 'orderAmount' => $orderAmount, 'orderStatus' => $orderStatus];
         $manager->dbOrder($orderData);
       } catch(Exception $e) {
-        $this->logger->error($e);
+        $this->loggerFactory->error($e);
       }
     } else {
       $intent = \Stripe\PaymentIntent::retrieve($paymentIntentId);
@@ -182,7 +184,7 @@ class MStripeManager {
           $orderData = ['orderId' => $orderId, 'orderAmount' => $orderAmount, 'orderStatus' => $orderStatus];
           $manager->dbOrder($orderData);
         } catch(Exception $e) {
-          $this->logger->error($e);
+          $this->loggerFactory->error($e);
         }
       }
     }
@@ -239,7 +241,7 @@ class MStripeManager {
     $clientSecret = $_POST['clientSecret'];
     $orderStatus = $_POST['orderStatus'];
     $manager = $this->mStripeOrderManager;
-    $manager->updateOrderStatus($clientSecret, $orderStatus);
+    $manager->updateOrderStatus('client_secret', $clientSecret, $orderStatus);
     $variables = [];
     $this->moduleHandler->invokeAll('mystics_stripe_post_checkout', [$variables]);
   }
