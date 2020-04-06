@@ -69,6 +69,13 @@ class OrdersTableSelect extends FormBase {
       '#default_value' => key(reset($options))
     ];
 
+    $form['submit_top'] = [
+      '#type' => 'submit',
+      '#prefix' => '<div class="form-actions js-form-wrapper form-wrapper">',
+      '#suffix' => '</div>',
+      '#value' => $this->t('Apply to selected items'),
+    ];
+
     $header = [
       'moid' => ['data' => $this->t('ID'), 'field' => 'moid'],
       'mystics_order_id' => ['data' => $this->t('Order Id'), 'field' => 'mystics_order_id'],
@@ -111,8 +118,10 @@ class OrdersTableSelect extends FormBase {
       '#empty' => $this->t('No orders found.'),
     ];
 
-    $form['submit'] = [
+    $form['submit_bottom'] = [
       '#type' => 'submit',
+      '#prefix' => '<div class="form-actions js-form-wrapper form-wrapper">',
+      '#suffix' => '</div>',
       '#value' => $this->t('Apply to selected items'),
     ];
 
