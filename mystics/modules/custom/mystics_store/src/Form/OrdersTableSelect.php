@@ -64,7 +64,7 @@ class OrdersTableSelect extends FormBase {
 
     $form['action'] = [
       '#type' => 'select',
-      '#title' => $this->t('action'),
+      '#title' => $this->t('Action'),
       '#options' => $options,
       '#default_value' => key(reset($options))
     ];
