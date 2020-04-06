@@ -63,11 +63,14 @@ class MStripeOrderManager {
   /**
    * Get orders list.
    */
-  public function getOrders(string $orderStatus = null, array $header = null) {
+  public function getOrders(string $customerName = null, string $orderStatus = null, array $header = null) {
     $query = $this->database->select('mystics_orders', 'mo')->extend('Drupal\Core\Database\Query\PagerSelectExtender')->extend('Drupal\Core\Database\Query\TableSortExtender');
     $query->leftjoin('user__field_full_name', 'fn', 'fn.entity_id = mo.mystics_order_uid');
     $query->fields('mo');
     $query->fields('fn', array('field_full_name_value'));
+    if(!empty($customerName)) {
+      $query->condition('field_full_name_value', '%' . $this->database->escapeLike($customerName) . '%', 'LIKE');
+    }
     if(!empty($orderStatus)) {
       $query->condition('mystics_order_status', $orderStatus, '=');
     }

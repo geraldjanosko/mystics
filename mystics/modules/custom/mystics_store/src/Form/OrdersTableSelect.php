@@ -72,6 +72,13 @@ class OrdersTableSelect extends FormBase {
       '#default_value' => $orderStatus
     ];
 
+    $customerName = isset($_GET['customerName']) ? $_GET['customerName'] : null;
+    $form['filter_customer_name'] = [
+      '#type' => 'textfield',
+      '#title' => $this->t('Customer Name'),
+      '#default_value' => $customerName
+    ];
+
     $form['submit_filters'] = [
       '#type' => 'submit',
       '#prefix' => '<div class="form-actions js-form-wrapper form-wrapper">',
@@ -109,7 +116,7 @@ class OrdersTableSelect extends FormBase {
     ];
 
     $manager = $this->mStripeOrderManager;
-    $orders = $manager->getOrders($orderStatus, $header);
+    $orders = $manager->getOrders($customerName, $orderStatus, $header);
     $options = [];
     foreach($orders as $order) {
       $moid = $order->moid;
@@ -179,7 +186,7 @@ class OrdersTableSelect extends FormBase {
           $first = false;
         }
         $argKey = implode('', $argKeys);
-        $args = [$argKey => $value];
+        $args[$argKey] = $value;
       }
     }
     if(!empty($_GET)) {
